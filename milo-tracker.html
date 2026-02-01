@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milo Price Tracker - Singapore</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --milo-brown: #3D2817;
+            --milo-green: #006847;
+            --milo-cream: #F5E6D3;
+            --milo-orange: #D85C2A;
+            --shopee-orange: #EE4D2D;
+            --lazada-blue: #0F146D;
+            --fairprice-red: #E31E24;
+            --highlight: #FFE66D;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--milo-cream) 0%, #E8D4BA 100%);
+            color: var(--milo-brown);
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(216, 92, 42, 0.1) 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, 20px) rotate(5deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            color: var(--milo-brown);
+            margin-bottom: 0.5rem;
+            text-shadow: 3px 3px 0 rgba(216, 92, 42, 0.2);
+            letter-spacing: -2px;
+        }
+
+        .tagline {
+            font-size: 1.1rem;
+            color: var(--milo-green);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .last-updated {
+            display: inline-block;
+            background: var(--milo-brown);
+            color: var(--milo-cream);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 3px solid var(--milo-brown);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .filter-btn:hover {
+            background: var(--milo-brown);
+            color: var(--milo-cream);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(61, 40, 23, 0.3);
+        }
+
+        .filter-btn.active {
+            background: var(--milo-orange);
+            border-color: var(--milo-orange);
+            color: white;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+        .product-card:nth-child(5) { animation-delay: 0.5s; }
+        .product-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .product-card:hover {
+            transform: translateY(-10px) rotate(-1deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: var(--milo-orange);
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 230, 109, 0.2) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .product-card:hover::before {
+            opacity: 1;
+        }
+
+        .product-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--milo-brown);
+            line-height: 1.3;
+            position: relative;
+            z-index: 1;
+        }
+
+        .prices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .platform-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .platform-price:hover {
+            transform: translateX(5px);
+        }
+
+        .platform-price.shopee {
+            background: linear-gradient(135deg, rgba(238, 77, 45, 0.1) 0%, rgba(238, 77, 45, 0.05) 100%);
+            border-left: 4px solid var(--shopee-orange);
+        }
+
+        .platform-price.lazada {
+            background: linear-gradient(135deg, rgba(15, 20, 109, 0.1) 0%, rgba(15, 20, 109, 0.05) 100%);
+            border-left: 4px solid var(--lazada-blue);
+        }
+
+        .platform-price.fairprice {
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.1) 0%, rgba(227, 30, 36, 0.05) 100%);
+            border-left: 4px solid var(--fairprice-red);
+        }
+
+        .platform-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .shopee .platform-name { color: var(--shopee-orange); }
+        .lazada .platform-name { color: var(--lazada-blue); }
+        .fairprice .platform-name { color: var(--fairprice-red); }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--milo-brown);
+        }
+
+        .best-price {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--highlight);
+            color: var(--milo-brown);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 10px rgba(255, 230, 109, 0.5);
+            animation: wiggle 1s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        .price-drop {
+            display: inline-block;
+            background: var(--milo-green);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            font-weight: 700;
+        }
+
+        .flash-sale {
+            display: inline-block;
+            background: var(--milo-orange);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            font-weight: 700;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .savings-summary {
+            background: var(--milo-green);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 104, 71, 0.3);
+        }
+
+        .savings-summary h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .savings-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            color: var(--milo-brown);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--milo-brown);
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥤 Milo Price Tracker</h1>
+            <p class="tagline">Find the Best Milo Deals in Singapore</p>
+            <div class="last-updated">Last updated: <span id="lastUpdate"></span></div>
+        </header>
+
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterProducts('all')">All Products</button>
+            <button class="filter-btn" onclick="filterProducts('uht')">UHT Packets</button>
+            <button class="filter-btn" onclick="filterProducts('powder')">Powder</button>
+            <button class="filter-btn" onclick="filterProducts('bottle')">Bottles</button>
+        </div>
+
+        <div class="products-grid" id="productsGrid"></div>
+
+        <div class="savings-summary">
+            <h2>💰 Potential Savings Today</h2>
+            <div class="savings-amount">$<span id="totalSavings">0.00</span></div>
+            <p>By choosing the cheapest option for each product</p>
+        </div>
+
+        <footer>
+            <p>Built with ☕ for Milo lovers in Singapore</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">Prices are simulated for demonstration. Connect real scrapers to get live data.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simulated backend data - this would come from your actual scrapers
+        const mockData = {
+            products: [
+                {
+                    id: 1,
+                    name: "Milo Chocolate Malt Milk UHT Packet Drink 200ML X 24 - Case",
+                    type: "uht",
+                    prices: [
+                        { platform: "shopee", price: 12.90, originalPrice: 19.00, flashSale: false },
+                        { platform: "lazada", price: 9.88, originalPrice: 19.00, flashSale: true },
+                        { platform: "fairprice", price: 13.95, originalPrice: 16.95, flashSale: false }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Milo Activ-Go Chocolate Malt Powder 2kg",
+                    type: "powder",
+                    prices: [
+                        { platform: "shopee", price: 18.90, originalPrice: 24.90, flashSale: false },
+                        { platform: "lazada", price: 19.50, originalPrice: 24.90, flashSale: false },
+                        { platform: "fairprice", price: 17.95, originalPrice: 24.90, flashSale: false }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "Milo Ready-to-Drink Bottle 1L",
+                    type: "bottle",
+                    prices: [
+                        { platform: "shopee", price: 3.95, originalPrice: 4.50, flashSale: false },
+                        { platform: "lazada", price: 4.20, originalPrice: 4.50, flashSale: false },
+                        { platform: "fairprice", price: 3.80, originalPrice: 4.50, flashSale: false }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: "Milo Powder 1kg Refill Pack",
+                    type: "powder",
+                    prices: [
+                        { platform: "shopee", price: 9.90, originalPrice: 12.50, flashSale: false },
+                        { platform: "lazada", price: 10.50, originalPrice: 12.50, flashSale: false },
+                        { platform: "fairprice", price: 9.50, originalPrice: 12.50, flashSale: true }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: "Milo UHT 200ml (Single Pack)",
+                    type: "uht",
+                    prices: [
+                        { platform: "shopee", price: 0.95, originalPrice: 1.20, flashSale: false },
+                        { platform: "lazada", price: 0.90, originalPrice: 1.20, flashSale: false },
+                        { platform: "fairprice", price: 1.00, originalPrice: 1.20, flashSale: false }
+                    ]
+                },
+                {
+                    id: 6,
+                    name: "Milo Powder Sachet 27g x 18",
+                    type: "powder",
+                    prices: [
+                        { platform: "shopee", price: 6.90, originalPrice: 8.90, flashSale: false },
+                        { platform: "lazada", price: 7.50, originalPrice: 8.90, flashSale: false },
+                        { platform: "fairprice", price: 6.80, originalPrice: 8.90, flashSale: false }
+                    ]
+                }
+            ],
+            lastUpdated: new Date().toLocaleString('en-SG', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        };
+
+        let currentFilter = 'all';
+
+        function init() {
+            document.getElementById('lastUpdate').textContent = mockData.lastUpdated;
+            renderProducts();
+            calculateSavings();
+        }
+
+        function filterProducts(type) {
+            currentFilter = type;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            const filteredProducts = currentFilter === 'all' 
+                ? mockData.products 
+                : mockData.products.filter(p => p.type === currentFilter);
+
+            grid.innerHTML = filteredProducts.map(product => {
+                const bestPrice = Math.min(...product.prices.map(p => p.price));
+                const savings = product.prices.map(p => p.originalPrice - p.price);
+                
+                return `
+                    <div class="product-card">
+                        ${product.prices.some(p => p.price === bestPrice) ? '<div class="best-price">★ Best Deal</div>' : ''}
+                        <h3 class="product-name">${product.name}</h3>
+                        <div class="prices-container">
+                            ${product.prices.map(p => `
+                                <div class="platform-price ${p.platform}">
+                                    <span class="platform-name">${p.platform}</span>
+                                    <div>
+                                        <span class="price">$${p.price.toFixed(2)}</span>
+                                        ${p.originalPrice > p.price ? `<span class="price-drop">-$${(p.originalPrice - p.price).toFixed(2)}</span>` : ''}
+                                        ${p.flashSale ? '<span class="flash-sale">⚡ FLASH</span>' : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calculateSavings() {
+            let totalSavings = 0;
+            mockData.products.forEach(product => {
+                const bestPrice = Math.min(...product.prices.map(p => p.price));
+                const worstPrice = Math.max(...product.prices.map(p => p.price));
+                totalSavings += (worstPrice - bestPrice);
+            });
+            
+            document.getElementById('totalSavings').textContent = totalSavings.toFixed(2);
+        }
+
+        // Initialize on page load
+        init();
+
+        // Simulate real-time updates (in production, this would poll your backend)
+        setInterval(() => {
+            // Randomly update a price to simulate live tracking
+            const randomProduct = mockData.products[Math.floor(Math.random() * mockData.products.length)];
+            const randomPlatform = randomProduct.prices[Math.floor(Math.random() * randomProduct.prices.length)];
+            
+            // Small random price fluctuation
+            const fluctuation = (Math.random() - 0.5) * 0.50;
+            randomPlatform.price = Math.max(0.50, randomPlatform.price + fluctuation);
+            
+            renderProducts();
+            calculateSavings();
+        }, 10000); // Update every 10 seconds for demo
+    </script>
+</body>
+</html>
